@@ -98,4 +98,50 @@ def post_to_discord():
 
     # 画像URLとラベル（図順に合わせて）
     urls = [
-        f"https://www.data.jma.go.jp/tcc/tcc/products/climate/db/monitor/monthly/
+        f"https://www.data.jma.go.jp/tcc/tcc/products/climate/db/monitor/monthly/ClimMIn{yymm}e.png",
+        f"https://ds.data.jma.go.jp/tcc/tcc/products/climate/db_JP/monitor/monthly/gprt{yymm}.gif",
+        f"https://www.data.jma.go.jp/cpd/data/elnino/clmrep/fig/{yyyy}/{mm}/ssta-gl_color.gif",
+        "https://www.data.jma.go.jp/tcc/tcc/products/elnino/gif/c_nino3.gif",
+        "https://www.data.jma.go.jp/tcc/tcc/products/elnino/gif/c_iowpac.gif"
+    ]
+
+    labels = [
+        "Extreme Climate Events",
+        "Monthly Precipitation Ratio",
+        "Monthly Mean SST Anomaly",
+        "NINO.3 & SOI",
+        "NINO.WEST & IOBW"
+    ]
+
+    # 画像取得＋ラベル・余白追加
+    imgs = []
+    for url, label in zip(urls, labels):
+        img = get_image(url)
+        if img:
+            img = add_margin_and_label(img, label, margin=30)
+        imgs.append(img)
+
+    if None in imgs:
+        print("❌ 画像取得に失敗")
+        return
+
+    # 縦結合
+    img1 = concat_images_two_uniform(imgs[0], imgs[1])
+    img2 = concat_images_three(imgs[2], imgs[3], imgs[4])
+
+    files = {
+        "file1": ("monthly_report.pdf", pdf_data, "application/pdf"),
+        "file2": ("climate_summary1.png", img1, "image/png"),
+        "file3": ("climate_summary2.png", img2, "image/png")
+    }
+
+    content = f"📄 気象庁 月例資料（{yyyy}年{mm}月分）\n🌍 気候図を画像でまとめて投稿します。"
+
+    res = requests.post(DISCORD_WEBHOOK_URL, data={"content": content}, files=files)
+    if res.status_code == 204:
+        print("✅ 投稿成功")
+    else:
+        print(f"⚠ 投稿失敗: {res.status_code}, {res.text}")
+
+if __name__ == "__main__":
+    post_to_discord()
