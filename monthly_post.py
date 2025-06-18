@@ -3,7 +3,7 @@ from PIL import Image
 import io
 from datetime import datetime, timedelta
 
-DISCORD_WEBHOOK_URL = "https://discordapp.com/api/webhooks/1384763822048411660/q-sgwyB8aSyu_ObaOrMWosZ68sThIWDtZCp7tE5cW1Vk_e1UYmvdYhD91tcMTj4D6blW"  # ← 自分のWebhookに差し替えてください
+DISCORD_WEBHOOK_URL = "https://discordapp.com/api/webhooks/1384763822048411660/q-sgwyB8aSyu_ObaOrMWosZ68sThIWDtZCp7tE5cW1Vk_e1UYmvdYhD91tcMTj4D6blW"  
 
 # 前月の年月を取得（yymm形式・yyyy・mm）
 def get_yymm():
@@ -22,6 +22,14 @@ def get_monthly_pdf():
 def get_image(url):
     res = requests.get(url)
     return Image.open(io.BytesIO(res.content)).convert("RGB") if res.status_code == 200 else None
+
+# 余白追加（上下左右に均等）
+def add_margin(image, margin=30, color=(255, 255, 255)):
+    new_width = image.width + margin * 2
+    new_height = image.height + margin * 2
+    new_img = Image.new("RGB", (new_width, new_height), color)
+    new_img.paste(image, (margin, margin))
+    return new_img
 
 # 2枚縦結合
 def concat_images(img1, img2):
@@ -74,21 +82,21 @@ def post_to_discord():
         # 画像1用（Extreme + Precip）
         f"https://www.data.jma.go.jp/tcc/tcc/products/climate/db/monitor/monthly/ClimMIn{yymm}e.png",
         f"https://ds.data.jma.go.jp/tcc/tcc/products/climate/db_JP/monitor/monthly/gprt{yymm}.gif",
-        
+
         # 画像2用（SST + ENSO + IOWPAC）
         f"https://www.data.jma.go.jp/cpd/data/elnino/clmrep/fig/{yyyy}/{mm}/ssta-gl_color.gif",
         "https://www.data.jma.go.jp/tcc/tcc/products/elnino/gif/c_nino3.gif",
         "https://www.data.jma.go.jp/tcc/tcc/products/elnino/gif/c_iowpac.gif"
     ]
 
-    # 画像取得
-    imgs = [get_image(url) for url in urls]
+    # 画像取得＆マージン追加
+    imgs = [add_margin(get_image(url), margin=30) for url in urls]
     if None in imgs:
         print("❌ 画像取得に失敗")
         return
 
-    img1 = concat_images(imgs[0], imgs[1])                    # 2枚縦結合
-    img2 = concat_images_three(imgs[2], imgs[3], imgs[4])     # 3枚縦結合
+    img1 = concat_images(imgs[0], imgs[1])                    # 2枚縦結合（画像1）
+    img2 = concat_images_three(imgs[2], imgs[3], imgs[4])     # 3枚縦結合（画像2）
 
     files = {
         "file1": ("monthly_report.pdf", pdf_data, "application/pdf"),
@@ -96,7 +104,7 @@ def post_to_discord():
         "file3": ("climate_summary2.png", img2, "image/png")
     }
 
-    content = f"📄 気象庁 月例資料（{yyyy}年{mm}月分）\n🌍 気候図（前月統計）をまとめて投稿します。"
+    content = f"📄 気象庁 月例資料（{yyyy}年{mm}月分）\n🌍 気候図を画像でまとめて投稿します。"
 
     res = requests.post(DISCORD_WEBHOOK_URL, data={"content": content}, files=files)
     if res.status_code == 204:
@@ -106,3 +114,4 @@ def post_to_discord():
 
 if __name__ == "__main__":
     post_to_discord()
+
