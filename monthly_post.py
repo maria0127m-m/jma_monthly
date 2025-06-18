@@ -3,7 +3,7 @@ from PIL import Image
 import io
 from datetime import datetime, timedelta
 
-DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/XXXX/YYYY"  # ← 差し替えてください
+DISCORD_WEBHOOK_URL = "https://discordapp.com/api/webhooks/1384763822048411660/q-sgwyB8aSyu_ObaOrMWosZ68sThIWDtZCp7tE5cW1Vk_e1UYmvdYhD91tcMTj4D6blW"  # ← 差し替えてください
 
 # JST基準で「前月」の YYMM を取得（例: 2025年6月 → '2505'）
 def get_yymm():
