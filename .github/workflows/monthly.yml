@@ -1,8 +1,8 @@
-name: Monthly JMA Climate Post
+name: Monthly JMA Post
 
 on:
   schedule:
-    - cron: '0 3 2 * *'  # 毎月2日 12:00 JST（＝UTC 03:00）
+    - cron: '0 3 2 * *'  # JST 12:00 on the 2nd of each month
   workflow_dispatch:
 
 jobs:
