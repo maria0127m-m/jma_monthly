@@ -37,7 +37,7 @@ def add_margin_and_label(image, label, margin=30, color=(255, 255, 255)):
     except:
         font = ImageFont.load_default()
 
-    draw.text((margin + 30, margin - 5), label, fill="black", font=font, stroke_width=2, stroke_fill="white")
+    draw.text((margin + 30, margin - 20), label, fill="black", font=font, stroke_width=2, stroke_fill="white")
     return new_img
 
 # 2枚縦結合（幅を揃える）
